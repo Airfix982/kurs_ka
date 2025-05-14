@@ -1,10 +1,7 @@
 import math
 import numpy as np
 import sympy
-import random
-import time
 import subprocess
-from sympy.solvers.solveset import linsolve
 
 def countL(p, deg=1):
     L = math.e ** (deg * math.sqrt( math.log(p) * math.log( math.log(p) ) ))
@@ -85,7 +82,7 @@ def decomposeIdention(g, h, p, B, factorBase):
         except ValueError as e:
             print(e)
             return -1
-        isBsmooth, degrees = checkIsBsmooth(can, B, factorBase)   # СТЕПЕНИ
+        isBsmooth, degrees = checkIsBsmooth(can, B, factorBase)
         if isBsmooth:
             printFindX(k, degrees, p)
             printDegrees(degrees, g, p)
@@ -103,15 +100,12 @@ def addDegrees(system, degrees, unused_p, j, allowed_p):
                 system[j] = degrees.copy()
 
 
-def createSystem(g, h, p, B, necessary_p, factorBase):
-    #print(factorBase)
+def createSystem(g, p, B, necessary_p, factorBase):
     system = dict()
     unused_p = necessary_p.copy()
     allowed_p = necessary_p.copy()
     j = 2
     while True:
-        #print(necessary_p, system, unused_p)
-        #time.sleep(0.5)
         if len(necessary_p) <= len(list(system.keys())) and len(unused_p) == 0: 
             break
         gj = (g ** j) % p
@@ -174,7 +168,6 @@ def writeMatrices(A, b, p):
 
 def solveSystem(g, p, degrees, system):
     A, b = createMatrices(degrees, system, p)
-    import shutil
     with open("solve_system.sage") as f:
         code = f.read()
 
@@ -221,7 +214,7 @@ if __name__=="__main__":
     factorBase = getFactorBase(B)
     degrees, k = decomposeIdention(g, h, p, B, factorBase)
     if degrees != -1:
-        system = createSystem(g, h, p, B, list(degrees.keys()), factorBase)
+        system = createSystem(g, p, B, list(degrees.keys()), factorBase)
         solves = solveSystem(g, p, degrees.copy(), system.copy())
         findX(k, degrees.items(), solves, p)
     

@@ -20,7 +20,7 @@ def preparing(p, c):
     iterAmount = countExpectedCompFindAmount(p, c)
     print('Parameter B: ', B)
     print('Necessary B-smoothes amount: ' ,n)
-    print('Expected amount of iterations to find 1 identically equal', iterAmount)
+    print('Expected amount of iterations to find 1 identically equal: ', iterAmount)
     return B, n
 
 def getFactorBase(B):
@@ -205,8 +205,11 @@ def findX(k, degrees, solves, modul):
     
 
 if __name__=="__main__":
+    print("input g: ")
     g = int(input())
+    print("input h: ")
     h = int(input())
+    print("input p: ")
     p = int(input())
 
     c = 1/math.sqrt(2)

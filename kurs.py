@@ -39,7 +39,7 @@ def getFactorBase(B):
     fb = [f for f in fb if f <= B]
     return fb
 
-def checkIsBsmooth(number, B, factorBase):
+def checkIsBsmooth(number, factorBase):
     degrees = {}
     for b in factorBase:
         if b * b > number:
@@ -81,14 +81,14 @@ def printSystem(system, p):
     print("================")
         
 
-def decomposeIdention(g, h, p, B, factorBase):
+def decomposeIdention(g, h, p, factorBase):
     for k in np.arange(1, p):
         try:
             can = ( h * ((sympy.mod_inverse(g, p) ** k) ) ) % p
         except ValueError as e:
             print(e)
             return -1
-        isBsmooth, degrees = checkIsBsmooth(can, B, factorBase)
+        isBsmooth, degrees = checkIsBsmooth(can, factorBase)
         if isBsmooth:
             printFindX(k, degrees, p)
             printDegrees(degrees, g, p)
@@ -135,7 +135,7 @@ def should_add_row(system, degrees, rhs, p_minus_1):
     return True
 
 
-def createSystem(g, p, B, necessary_p, factorBase, n, ord_g):
+def createSystem(g, p, necessary_p, factorBase, n, ord_g):
     system = dict()
 
     unused_p = set(necessary_p)
@@ -144,12 +144,11 @@ def createSystem(g, p, B, necessary_p, factorBase, n, ord_g):
 
     while True:
         
-        printSystem(system, p)
         if len(system) >= len(factorBase) and len(unused_p) == 0: 
             break
         gj = pow(g, j, p)
         if 1 < gj < p:
-            isBsmooth, degrees = checkIsBsmooth(gj, B, factorBase)
+            isBsmooth, degrees = checkIsBsmooth(gj, factorBase)
             if isBsmooth:
                 if should_add_row(system, degrees, j, ord_g):
                     addDegrees(system, degrees, unused_p, j, covered_set)
@@ -170,7 +169,7 @@ def ifHasP(p, sumParts):
             return True, u
     return False, 0
 
-def createMatrices(system, mod, ord_g):
+def createMatrices(system, ord_g):
     all_p = sorted({p for row in system.values() for p in row})
     A_rows = []
     b_vec = []
@@ -233,7 +232,7 @@ def getModx(partial_results, mods):
         mod_x.append([ (b*mod_inverse(a % m, m)) % m for a, b in zip(a_diag, b_diag) ])
     return mod_x
 
-def getSolutions(mod_x, mods, p, ord_g):
+def getSolutions(mod_x, mods, ord_g):
     solution = []
     num_vars = len(mod_x[0]) 
     for i in range(num_vars):
@@ -243,14 +242,14 @@ def getSolutions(mod_x, mods, p, ord_g):
     return solution
 
 
-def solveSystem(g, p, degrees, B, factorBase, n, ord_g):
-    system = createSystem(g, p, B, list(degrees.keys()), factorBase, n, ord_g)
-    A, b, only_p = createMatrices(system, p, ord_g)
+def solveSystem(g, p, degrees, factorBase, n, ord_g):
+    system = createSystem(g, p, list(degrees.keys()), factorBase, n, ord_g)
+    A, b, only_p = createMatrices(system, ord_g)
     mods = [prime**exp for prime, exp in factorint(ord_g).items()]
     partial_results = getPartialResults(mods, A, b)
 
     mod_x = getModx(partial_results, mods)
-    solution = getSolutions(mod_x, mods, p, ord_g)
+    solution = getSolutions(mod_x, mods, ord_g)
 
     printSolutions(solution, degrees.items(), p, only_p)
     return solution, only_p
@@ -290,12 +289,12 @@ if __name__=="__main__":
     B, n = preparing(p, c)
     factorBase = getFactorBase(B)
     while 1:
-        degrees, k = decomposeIdention(g, h, p, B, factorBase)
+        degrees, k = decomposeIdention(g, h, p, factorBase)
         if degrees == {}:
             printX(k, p, g)
             exit()
         if degrees != -1:
-            solves, only_p = solveSystem(g, p, degrees.copy(), B, factorBase, n, ord_g)
+            solves, only_p = solveSystem(g, p, degrees.copy(), factorBase, n, ord_g)
             findX(k, degrees, solves, p, only_p, g, ord_g)
             exit()
     

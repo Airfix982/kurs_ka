@@ -134,6 +134,22 @@ def should_add_row(system, degrees, rhs, p_minus_1):
             return False
     return True
 
+def solve_linear(a, b, m):
+    """
+    Решает a·x ≡ b (mod m).
+    Возвращает x в диапазоне 0..m-1 либо None,
+    если уравнение несовместно.
+    """
+    a %= m
+    b %= m
+    g = math.gcd(a, m)
+    if b % g:          # несовместимо
+        return None
+    a //= g
+    b //= g
+    m //= g
+    return (b * mod_inverse(a % m, m)) % m
+
 
 def createSystem(g, p, necessary_p, factorBase, n, ord_g):
     system = dict()
@@ -150,6 +166,9 @@ def createSystem(g, p, necessary_p, factorBase, n, ord_g):
         if 1 < gj < p:
             isBsmooth, degrees = checkIsBsmooth(gj, factorBase)
             if isBsmooth:
+                if not row_is_ok(degrees, ord_g):
+                    j += 1
+                    continue
                 if should_add_row(system, degrees, j, ord_g):
                     addDegrees(system, degrees, unused_p, j, covered_set)
         j += 1
@@ -229,7 +248,13 @@ def getPartialResults(mods, A, b):
 def getModx(partial_results, mods):
     mod_x = []
     for (a_diag, b_diag), m in zip(partial_results, mods):
-        mod_x.append([ (b*mod_inverse(a % m, m)) % m for a, b in zip(a_diag, b_diag) ])
+        row = []
+        for a, b in zip(a_diag, b_diag):
+            x = solve_linear(a, b, m)
+            if x is None:        # несовместно вся строка бракуется
+                return []
+            row.append(x)
+        mod_x.append(row)
     return mod_x
 
 def getSolutions(mod_x, mods, ord_g):
@@ -240,6 +265,18 @@ def getSolutions(mod_x, mods, ord_g):
         x_mod_M, _ = crt(mods, remainders)   
         solution.append(int(x_mod_M % ord_g))
     return solution
+
+
+def row_is_ok(degrees, ord_g):
+    coeffs = list(degrees.values())
+    for m in (prime**exp for prime, exp in factorint(ord_g).items()):
+        # общий НОД всех коэффициентов с данным m
+        g = 0
+        for a in coeffs:
+            g = math.gcd(g, a % m)
+        if g != 1:          # нет обратимых коэфф-в
+            return False
+    return True
 
 
 def solveSystem(g, p, degrees, factorBase, n, ord_g):

@@ -135,11 +135,6 @@ def should_add_row(system, degrees, rhs, p_minus_1):
     return True
 
 def solve_linear(a, b, m):
-    """
-    Решает a·x ≡ b (mod m).
-    Возвращает x в диапазоне 0..m-1 либо None,
-    если уравнение несовместно.
-    """
     a %= m
     b %= m
     g = math.gcd(a, m)
